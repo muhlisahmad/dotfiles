@@ -23,21 +23,13 @@ fonts=(
 
 
 ## WARNING: DO NOT EDIT BEYOND THIS LINE IF YOU DON'T KNOW WHAT YOU ARE DOING! ##
-# Determine the directory where the script is located
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-# Change the working directory to the parent directory of the script
-PARENT_DIR="$SCRIPT_DIR/.."
-cd "$PARENT_DIR" || exit 1
-
 source "$(dirname "$(readlink -f "$0")")/Global_functions.sh"
 
 # Set the name of the log file to include the current date and time
 LOG="Install-Logs/install-$(date +%d%m%Y-%H%M%S)_fonts.log"
 
 # Installation of main components
-printf "\n%s - Installing necessary ${SKY_BLUE}fonts${RESET}.... \n" "${NOTE}"
-
+echo -e "${NOTE} Installing ${SKY_BLUE}fonts${RESET} ...."
 for PKG1 in "${fonts[@]}"; do
   install_package "$PKG1" "$LOG"
 done

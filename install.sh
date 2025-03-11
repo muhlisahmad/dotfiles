@@ -118,5 +118,9 @@ sleep 1
 execute_script 06-location.sh
 sleep 1
 
+# Installing Fonts
+execute_script 07-fonts.sh
+sleep 1
+
 # Installing hypr packages
 execute_script hypr-pkgs.sh
