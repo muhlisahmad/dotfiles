@@ -37,7 +37,7 @@ else
     echo -e "${CAT} It seems ${YELLOW}ILoveCandy${RESET} already exists ${RESET} moving on.." 2>&1 | tee -a "$LOG"
 fi
 
-echo -e "${CAT} ${MAGENTA}Pacman.conf${RESET} spicing up completed ${RESET}" 2>&1 | tee -a "$LOG"
+echo -e "${CAT} ${MAGENTA}pacman.conf${RESET} spicing up completed ${RESET}" 2>&1 | tee -a "$LOG"
 
 
 # updating pacman.conf

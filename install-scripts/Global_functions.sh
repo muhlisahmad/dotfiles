@@ -1,45 +1,122 @@
 #!/bin/bash
 # https://github.com/muhlisahmad/dotfiles
 
+set -e
+
+# Set some colors for output messages
+OK="$(tput setaf 2)[OK]$(tput sgr0)"
+ERROR="$(tput setaf 1)[ERROR]$(tput sgr0)"
+NOTE="$(tput setaf 3)[NOTE]$(tput sgr0)"
+INFO="$(tput setaf 4)[INFO]$(tput sgr0)"
+WARN="$(tput setaf 1)[WARN]$(tput sgr0)"
+CAT="$(tput setaf 6)[ACTION]$(tput sgr0)"
+MAGENTA="$(tput setaf 5)"
+ORANGE="$(tput setaf 214)"
+WARNING="$(tput setaf 1)"
+YELLOW="$(tput setaf 3)"
+GREEN="$(tput setaf 2)"
+BLUE="$(tput setaf 4)"
+SKY_BLUE="$(tput setaf 6)"
+RESET="$(tput sgr0)"
+
+# Create Directory for Install Logs
+if [ ! -d Install-Logs ]; then
+    mkdir Install-Logs
+fi
+
+ISAUR=$(command -v yay || command -v paru)
+
 # Function to install packages with pacman
 install_package_pacman() {
-  # Check if package is already installed
-  if pacman -Q "$1" &>/dev/null ; then
-    echo -e "${INFO} ${MAGENTA}$1${RESET} is already installed. Skipping..."
-  else
-    # Run pacman and redirect all output to a log file
-    (
-      stdbuf -oL sudo pacman -S --noconfirm "$1" 2>&1
-    ) >> "$LOG" 2>&1 &
-    PID=$!
-    show_progress $PID "$1" 
+  local pkg="$1"
+  local LOG="$2"
+  local attempts=0
+  local max_attempts=3
 
-    # Double check if package is installed
-    if pacman -Q "$1" &>/dev/null ; then
-      echo -e "${OK} Package ${YELLOW}$1${RESET} has been successfully installed!"
-    else
-      echo -e "\n${ERROR} ${YELLOW}$1${RESET} failed to install. Please check the $LOG. You may need to install manually."
+  # Check if package is already installed
+  if pacman -Q "$pkg" &>/dev/null ; then
+    echo -e "${INFO} ${MAGENTA}$pkg${RESET} is already installed. Skipping..."
+    return
+  fi
+
+  echo -e "${NOTE} Installing ${SKY_BLUE}$pkg${RESET}..."
+
+  (
+    stdbuf -oL sudo pacman -S --noconfirm "$pkg" 2>&1
+  ) >> "$LOG" 2>&1
+
+  if pacman -Q "$pkg" &>/dev/null ; then
+    echo -e "${OK} Package ${YELLOW}$pkg${RESET} has been successfully installed!"
+  else
+    echo -e "${WARN} Initial installation of ${YELLOW}$pkg${RESET} failed. Retrying up to 2 more times..."
+    attempts=1
+    max_attempts=3
+    while [ $attempts -lt $max_attempts ] && ! pacman -Q "$pkg" &>/dev/null; do
+      attempts=$((attempts + 1))
+      echo -e "${WARN} Retrying ${YELLOW}$pkg${RESET} (Attempt ${attempts}/${max_attempts})..."
+
+      (
+        stdbuf -oL sudo pacman -S --noconfirm "$pkg" 2>&1
+      ) >> "$LOG" 2>&1
+
+      if pacman -Q "$pkg" &>/dev/null; then
+        echo -e "${OK} Package ${YELLOW}$pkg${RESET} successfully installed on retry ${attempts}!"
+        return
+      else
+        echo -e "${WARN} ${YELLOW}$pkg${RESET} retry attempt ${attempts} failed."
+        sleep 2
+      fi
+    done
+
+    if ! pacman -Q "$pkg" &>/dev/null; then
+      echo -e "${ERROR} ${YELLOW}$pkg${RESET} failed to install after ${max_attempts} attempts. Please check the ${LOG}. You may need to install manually."
     fi
   fi
 }
 
 # Function to install packages with either yay or paru
 install_package() {
-  if $ISAUR -Q "$1" &>> /dev/null ; then
-    echo -e "${INFO} ${MAGENTA}$1${RESET} is already installed. Skipping..."
+  local pkg="$1"
+  local LOG="$2"
+  local attempts=0
+  local max_attempts=3
+
+  if $ISAUR -Q "$pkg" &>> /dev/null ; then
+    echo -e "${INFO} ${MAGENTA}$pkg${RESET} is already installed. Skipping..."
+    return
+  fi
+
+  echo -e "${NOTE} Installing ${SKY_BLUE}$pkg${RESET}..."
+
+  (
+    stdbuf -oL $ISAUR -S --noconfirm "$pkg" 2>&1
+  ) >> "$LOG" 2>&1
+
+  if $ISAUR -Q "$pkg" &>> /dev/null ; then
+    echo -e "${OK} Package ${YELLOW}$pkg${RESET} has been successfully installed!"
   else
-    (
-      stdbuf -oL $ISAUR -S --noconfirm "$1" 2>&1
-    ) >> "$LOG" 2>&1 &
-    PID=$!
-    show_progress $PID "$1"  
-    
-    # Double check if package is installed
-    if $ISAUR -Q "$1" &>> /dev/null ; then
-      echo -e "${OK} Package ${YELLOW}$1${RESET} has been successfully installed!"
-    else
-      # Something is missing, exiting to review log
-      echo -e "\n${ERROR} ${YELLOW}$1${RESET} failed to install :( , please check the install.log. You may need to install manually! Sorry I have tried :("
+    echo -e "${WARN} Initial installation of ${YELLOW}$pkg${RESET} failed. Retrying up to 2 more times..."
+    attempts=1
+    max_attempts=3
+    while [ $attempts -lt $max_attempts ] && ! $ISAUR -Q "$pkg" &>> /dev/null; do
+      attempts=$((attempts + 1))
+      echo -e "${WARN} Retrying ${YELLOW}$pkg${RESET} (Attempt ${attempts}/${max_attempts})..."
+
+      (
+        stdbuf -oL $ISAUR -S --noconfirm "$pkg" 2>&1
+      ) >> "$LOG" 2>&1
+
+      if $ISAUR -Q "$pkg" &>> /dev/null; then
+        echo -e "${OK} Package ${YELLOW}$pkg${RESET} successfully installed on retry ${attempts}!"
+        return
+      else
+        echo -e "${WARN} ${YELLOW}$pkg${RESET} retry attempt ${attempts} failed."
+        sleep 2
+      fi
+    done
+
+    if ! $ISAUR -Q "$pkg" &>> /dev/null; then
+      echo -e "${ERROR} ${YELLOW}$pkg${RESET} failed to install after ${max_attempts} attempts. Please check the ${LOG}. You may need to install manually."
     fi
   fi
 }

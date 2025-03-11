@@ -57,10 +57,6 @@ colorize_prompt() {
     echo -n "${color}${message}$(tput sgr0)"
 }
 
-# Set the name of the log file to include the current date and time
-LOG="install-$(date +%d%m%Y-%H%M%S).log"
-
-
 # Create Directory for Install Logs
 if [ ! -d Install-Logs ]; then
     mkdir Install-Logs
@@ -100,6 +96,19 @@ sleep 1
 
 # Installing yay
 execute_script 01-yay.sh
+sleep 1
+
+# Installing essential packages
+execute_script 02-essentials.sh
+sleep 1
+
+# Installing pipewire packages
+execute_script 03-pipewire.sh
+sleep 1
+
+# Installing Intel drivers
+execute_script 04-intel-driver.sh
+sleep 1
 
 # Installing hypr packages
-execute_script 02-hypr-pkgs.sh
+execute_script hypr-pkgs.sh

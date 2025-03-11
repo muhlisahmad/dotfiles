@@ -10,8 +10,7 @@ base=(
 source "$(dirname "$(readlink -f "$0")")/Global_functions.sh"
 
 # Set the name of the log file to include the current date and time
-LOG="Install-Logs/install-$(date +%d-%H%M%S)_base.log"
-
+LOG="Install-Logs/install-$(date +%d%m%Y-%H%M%S)_base.log"
 
 # Installation of main components
 printf "\n%s - Installing ${SKY_BLUE}base-devel${RESET} \n" "${NOTE}"
