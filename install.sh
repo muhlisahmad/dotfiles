@@ -110,5 +110,13 @@ sleep 1
 execute_script 04-intel-driver.sh
 sleep 1
 
+# Installing Bluetooth packages
+execute_script 05-bluetooth.sh
+sleep 1
+
+# Installing Location Services
+execute_script 06-location.sh
+sleep 1
+
 # Installing hypr packages
 execute_script hypr-pkgs.sh
